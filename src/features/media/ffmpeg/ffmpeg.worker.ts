@@ -25,6 +25,7 @@ type FFmpegInstance = {
 };
 
 let ffmpeg: FFmpegInstance | null = null;
+let currentStage: FFmpegProgressPayload["stage"] = "preparing";
 
 type FFmpegModule = {
   FFmpeg: new () => FFmpegInstance;
@@ -68,7 +69,7 @@ async function ensureFFmpegLoaded(jobId: string): Promise<FFmpegInstance> {
 
   ffmpeg.on("progress", ({ progress }) => {
     const payload: FFmpegProgressPayload = {
-      stage: "preparing",
+      stage: currentStage,
       stagePct: Math.round(progress * 100),
       overallPct: Math.round(progress * 100),
       message: "ffmpeg processing",
@@ -142,6 +143,7 @@ async function handleRequest(message: FFmpegRequest): Promise<void> {
 
     sendStageProgress(message.jobId, { stage: "extracting", message: "Extracting audio from media" }, 0, 15);
     await instance.writeFile(inputName, bufferFromPayload(message.payload.input));
+    currentStage = "extracting";
     await instance.exec(buildExtractAudioArgs(inputName, outputName));
     const output = await instance.readFile(outputName);
 
@@ -161,6 +163,7 @@ async function handleRequest(message: FFmpegRequest): Promise<void> {
 
     sendStageProgress(message.jobId, { stage: "optimizing", message: "Normalizing to mono 16kHz WAV" }, 10, 60);
     await instance.writeFile(inputName, bufferFromPayload(message.payload.input));
+    currentStage = "optimizing";
     await instance.exec(buildNormalize16kWavArgs(inputName, outputName));
     const output = await instance.readFile(outputName);
 
@@ -180,6 +183,7 @@ async function handleRequest(message: FFmpegRequest): Promise<void> {
 
     sendStageProgress(message.jobId, { stage: "splitting", message: "Splitting into 30 minute chunks" }, 20, 75);
     await instance.writeFile(inputName, bufferFromPayload(message.payload.input));
+    currentStage = "splitting";
     await instance.exec(buildSplit30MinArgs(inputName, outputPattern));
 
     const entries = (await instance.listDir?.("/")) ?? [];
@@ -213,6 +217,7 @@ async function handleRequest(message: FFmpegRequest): Promise<void> {
 
   sendStageProgress(message.jobId, { stage: "optimizing", message: "Compressing audio" }, 20, 80);
   await instance.writeFile(inputName, bufferFromPayload(message.payload.input));
+  currentStage = "optimizing";
   await instance.exec(buildCompressArgs(inputName, outputName, message.payload.preset));
   const output = await instance.readFile(outputName);
 
