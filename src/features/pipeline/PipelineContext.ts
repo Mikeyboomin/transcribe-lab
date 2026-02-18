@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from "react";
-import { PipelineState } from "./types";
-import { PipelineAction } from "./actions";
+import type { PipelineState } from "./types";
+import type { PipelineAction } from "./actions";
 
 export const PipelineStateCtx = createContext<PipelineState | null>(null);
 export const PipelineDispatchCtx = createContext<React.Dispatch<PipelineAction> | null>(null);

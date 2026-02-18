@@ -1,4 +1,5 @@
-import { PropsWithChildren, useReducer } from "react";
+import { useReducer } from "react";
+import type { PropsWithChildren } from "react";
 import { pipelineReducer } from "../../features/pipeline/reducer";
 import { initialPipelineState } from "../../features/pipeline/constants";
 import {
