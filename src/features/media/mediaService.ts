@@ -173,6 +173,10 @@ export const mediaService = {
   },
 
   cancel(jobId: string): void {
+    this.dispose(jobId);
+  },
+
+  dispose(jobId: string): void {
     const runtime = runtimes.get(jobId);
     if (!runtime) {
       return;
@@ -183,9 +187,9 @@ export const mediaService = {
     runtimes.delete(jobId);
   },
 
-  dispose(): void {
+  disposeAll(): void {
     for (const [jobId] of runtimes) {
-      this.cancel(jobId);
+      this.dispose(jobId);
     }
   },
 };

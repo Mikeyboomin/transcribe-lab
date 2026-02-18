@@ -34,7 +34,7 @@ export function TranscribePage() {
 
   const clearJob = () => {
     if (activeJobIdRef.current) {
-      mediaService.cancel(activeJobIdRef.current);
+      mediaService.dispose(activeJobIdRef.current);
       activeJobIdRef.current = null;
     }
     unsubscribeProgressRef.current?.();
@@ -48,6 +48,16 @@ export function TranscribePage() {
       normalizedUrlRef.current = null;
     }
   }, []);
+
+  const isCancellationError = (error: unknown, jobId: string) => {
+    const message = error instanceof Error ? error.message : String(error ?? "");
+    const normalizedMessage = message.toLowerCase();
+    return (
+      normalizedMessage.includes("job canceled") ||
+      (normalizedMessage.includes("stale") && message.includes(jobId)) ||
+      normalizedMessage.includes("stale jobid")
+    );
+  };
 
   const onRunMediaPrep = async () => {
     if (!selectedFile) {
@@ -106,8 +116,12 @@ export function TranscribePage() {
 
       dispatch({ type: "PIPELINE/PROGRESS", progress: { overallPct: 100, stagePct: 100 } });
       dispatch({ type: "PIPELINE/STAGE_SET", stage: "done", canCancel: false });
+      mediaService.dispose(jobId);
       activeJobIdRef.current = null;
     } catch (error) {
+      if (isCancellationError(error, jobId)) {
+        return;
+      }
       dispatch({
         type: "PIPELINE/ERROR",
         error: {
