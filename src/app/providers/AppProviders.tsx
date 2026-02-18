@@ -1,4 +1,4 @@
-import { PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 import { PipelineProvider } from "./PipelineProvider";
 
 export function AppProviders({ children }: PropsWithChildren) {

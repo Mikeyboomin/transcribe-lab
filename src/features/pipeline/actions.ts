@@ -1,4 +1,4 @@
-import { PipelineError, PipelineStage, ChunkItem, PipelineProgress } from "./types";
+import type { PipelineError, PipelineStage, ChunkItem, PipelineProgress } from "./types";
 
 export type PipelineAction =
   | { type: "PIPELINE/START"; jobId: string }

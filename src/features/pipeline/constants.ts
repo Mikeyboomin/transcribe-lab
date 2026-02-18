@@ -1,4 +1,4 @@
-import { PipelineState } from "./types";
+import type { PipelineState } from "./types";
 
 export const initialPipelineState: PipelineState = {
   jobId: null,

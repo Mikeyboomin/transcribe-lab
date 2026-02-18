@@ -1,6 +1,6 @@
 import { initialPipelineState } from "./constants";
-import { PipelineAction } from "./actions";
-import { PipelineState } from "./types";
+import type { PipelineAction } from "./actions";
+import type { PipelineState } from "./types";
 
 export function pipelineReducer(
   state: PipelineState,
