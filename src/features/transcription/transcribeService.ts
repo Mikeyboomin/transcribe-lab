@@ -64,15 +64,24 @@ function postMessage(message: WorkerRequest, transfer: Transferable[] = []) {
   ensureWorker().postMessage(message, transfer);
 }
 
+function rejectInflight(jobId: string, reason: Error) {
+  pendingByJobId.get(jobId)?.reject(reason);
+  readyByJobId.get(jobId)?.reject(reason);
+  pendingByJobId.delete(jobId);
+  readyByJobId.delete(jobId);
+  progressByJobId.delete(jobId);
+}
+
 export function initModel(
   jobId: string,
   opts?: { modelProfile?: ModelProfile; preferredBackend?: RuntimePreference; onProgress?: ProgressListener }
 ) {
-  if (opts?.onProgress) progressByJobId.set(jobId, opts.onProgress);
+  const { onProgress, ...initPayload } = opts ?? {};
+  if (onProgress) progressByJobId.set(jobId, onProgress);
 
   return new Promise<void>((resolve, reject) => {
     readyByJobId.set(jobId, { resolve, reject });
-    postMessage({ type: "INIT_MODEL", jobId, payload: opts });
+    postMessage({ type: "INIT_MODEL", jobId, payload: initPayload });
   });
 }
 
@@ -97,15 +106,14 @@ export async function transcribeWav(jobId: string, wavBlob: Blob, onProgress?: P
 }
 
 export function cancel(jobId: string) {
+  rejectInflight(jobId, new Error("Job canceled"));
   postMessage({ type: "CANCEL", jobId });
 }
 
 export async function dispose(jobId: string) {
   if (!worker) return;
+  rejectInflight(jobId, new Error("Disposed"));
   postMessage({ type: "DISPOSE", jobId });
   worker.terminate();
   worker = null;
-  pendingByJobId.delete(jobId);
-  progressByJobId.delete(jobId);
-  readyByJobId.delete(jobId);
 }
