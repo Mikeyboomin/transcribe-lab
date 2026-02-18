@@ -71,3 +71,9 @@ export default defineConfig([
   },
 ])
 ```
+
+## Browser transcription notes
+
+- The transcription worker uses `transformers.js` in-browser with WebGPU when available, then falls back to WASM automatically.
+- For a 30-minute normalized 16kHz mono WAV chunk, expect roughly near-realtime on WebGPU and typically slower (around 0.3x-0.8x realtime) on WASM on a mid-range laptop.
+- Known limitations: small default model favors speed over accuracy, punctuation may drift across long windows, and mobile browsers can be unstable for long-running inference.
